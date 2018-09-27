@@ -1,11 +1,62 @@
 <!DOCTYPE html>
-<script src='vendor/three.js/build/three.min.js'></script>
-<script src='threex.planets.js'></script>
-<script src='threex.atmospherematerial.js'></script>
-<!-- include for threex.glowdatgui -->
-<script src='vendor/three.js/examples/js/libs/dat.gui.min.js'></script>
+<script src="vendor/three.js/build/three.min.js"></script>
+<script src="threex.planets.js"></script>
+<script src="threex.atmospherematerial.js"></script>
+<script src="vendor/three.js/examples/js/libs/dat.gui.min.js"></script>
 <script src="threex.atmospheredatgui.js"></script>
-<body style='margin: 0px; background-color: #000000; overflow: hidden;'><script>
+<script
+  src="https://code.jquery.com/jquery-3.3.1.js"
+  integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+  crossorigin="anonymous"></script>
+<body style="margin: 0px; background-color: #000000; overflow: hidden;">
+  <div style="position: absolute"> 
+    <h1 id="toptitle'" style="color:white">
+      Design Patterns Project 1
+    </h1>
+    <p id="currentLocation" style="color:white">
+      x: 0
+      y: 0
+      z: 0
+    </p>
+  </div>
+  
+  
+<script>
+  
+var cameraPosition = new THREE.Vector3(0,0,0);
+// var loader = new THREE.OBJLoader();
+
+//   loader.load(
+// 	// resource URL
+// 	'models/monster.obj',
+// 	// called when resource is loaded
+// 	function ( object ) {
+
+// 		scene.add( object );
+
+// 	},
+// 	// called when loading is in progresses
+// 	function ( xhr ) {
+
+// 		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+// 	},
+// 	// called when loading has errors
+// 	function ( error ) {
+
+// 		console.log( 'An error happened' );
+
+// 	}
+// );
+  
+$(document).ready(function() {
+
+$.getJSON('http://localhost:8080', function(coordinates) {
+    // console.log(coordinates)
+
+  
+  
+  
 	var renderer	= new THREE.WebGLRenderer({
 		antialias	: true
 	});
@@ -15,7 +66,7 @@
 	
 	var onRenderFcts= [];
 	var scene	= new THREE.Scene();
-	var camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100 );
+	var camera	= new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 0.01, 100 );
 	camera.position.z = 1;
 
 	var light	= new THREE.AmbientLight( 0x222222 )
@@ -58,14 +109,8 @@
 	containerEarth.rotateZ(-23.4 * Math.PI/180)
 	containerEarth.position.z	= 0
 	scene.add(containerEarth)
-	var moonMesh	= THREEx.Planets.createMoon()
-	moonMesh.position.set(0.5,0.5,0.5)
-	moonMesh.scale.multiplyScalar(1/5)
-	moonMesh.receiveShadow	= true
-	moonMesh.castShadow	= true
-	containerEarth.add(moonMesh)
 
-	var earthMesh	= THREEx.Planets.createEarth()
+	var earthMesh	= THREEx.Planets.createVenus()
 	earthMesh.receiveShadow	= true
 	earthMesh.castShadow	= true
 	containerEarth.add(earthMesh)
@@ -78,7 +123,7 @@
 	material.uniforms.glowColor.value.set(0x00b3ff)
 	material.uniforms.coeficient.value	= 0.8
 	material.uniforms.power.value		= 2.0
-	var mesh	= new THREE.Mesh(geometry, material );
+	var mesh	= new THREE.Mesh(geometry, material);
 	mesh.scale.multiplyScalar(1.01);
 	containerEarth.add( mesh );
 	// new THREEx.addAtmosphereMaterial2DatGui(material, datGUI)
@@ -90,17 +135,59 @@
 	material.uniforms.coeficient.value	= 0.5
 	material.uniforms.power.value		= 4.0
 	var mesh	= new THREE.Mesh(geometry, material );
-	mesh.scale.multiplyScalar(1.15);
-	containerEarth.add( mesh );
-	// new THREEx.addAtmosphereMaterial2DatGui(material, datGUI)
 
-	var earthCloud	= THREEx.Planets.createEarthCloud()
-	earthCloud.receiveShadow	= true
-	earthCloud.castShadow	= true
-	containerEarth.add(earthCloud)
-	onRenderFcts.push(function(delta, now){
-		earthCloud.rotation.y += 1/8 * delta;		
-	})
+	mesh.scale.multiplyScalar(1.15);
+
+	containerEarth.add( mesh );
+
+  
+  
+   for(let i=0; i<20; ++i){
+    var starMesh	= THREEx.Planets.createVenus()
+    
+    currX = coordinates.coordinates[i].coordinate[0] / 2**60,
+    currY = coordinates.coordinates[i].coordinate[1] / 2**60,
+    currZ = coordinates.coordinates[i].coordinate[2] / 2**60  
+    
+    starMesh.position.set(currX, currY, currZ )
+     
+     for(let j=0; j<coordinates.coordinates[i].tmpPlanet.length; ++j){
+       var dist = coordinates.coordinates[i].tmpPlanet[j].distance / 90
+       var degree = Math.random(-360,360)
+       var planetType = coordinates.coordinates[i].tmpPlanet[j].planetType;
+       
+       if(planetType === "r"){
+         var planetMesh	= THREEx.Planets.createMoon()
+       }else if(planetType === "g"){
+         var planetMesh	= THREEx.Planets.createPluto()
+       }else{
+         var planetMesh	= THREEx.Planets.createEarth()
+       }
+       
+       
+       var planetMesh	= THREEx.Planets.createPluto()
+       planetMesh.position.set(currX + Math.sin(dist)* Math.cos(dist) * degree,currY + Math.cos(dist)* Math.sin(dist) * degree,currZ + dist * Math.cos(dist))
+       planetMesh.scale.multiplyScalar(0.2)
+       containerEarth.add(planetMesh)
+     }
+     
+     
+     
+     //set size of the star according to type
+    if(coordinates.coordinates[i].starType === "d"){
+      starMesh.scale.multiplyScalar(1/2)
+    }else if(coordinates.coordinates[i].starType === "g"){
+      starMesh.scale.multiplyScalar(2)
+    }else{
+      starMesh.scale.multiplyScalar(1)
+    }
+     
+    starMesh.scale.multiplyScalar(1)
+    starMesh.receiveShadow	= true
+    starMesh.castShadow	= true
+    containerEarth.add(starMesh)
+  }
+
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//		Camera Controls							//
@@ -111,12 +198,14 @@
 		mouse.y	= (event.clientY / window.innerHeight) - 0.5
 	}, false)
 	onRenderFcts.push(function(delta, now){
-		camera.position.x += (mouse.x*5 - camera.position.x) * (delta*3)
-		camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
-		camera.lookAt( scene.position )
+		camera.position.x += (mouse.x*100 - camera.position.x) * (delta*1)
+		camera.position.y += (mouse.y*100 - camera.position.y) * (delta*1)
+		camera.lookAt( cameraPosition )
 	})
 
-
+  camera.position.x = 10
+  camera.position.y = 10
+  camera.lookAt( scene.position )
 	//////////////////////////////////////////////////////////////////////////////////
 	//		render the scene						//
 	//////////////////////////////////////////////////////////////////////////////////
@@ -140,4 +229,38 @@
 			onRenderFct(deltaMsec/1000, nowMsec/1000)
 		})
 	})
+  
+
+  
+  $(window).keypress(function (e) {
+  let id = 0;
+  if (e.key === ' ' || e.key === 'Spacebar') {
+    
+    // ' ' is standard, 'Spacebar' was used by IE9 and Firefox < 37
+    e.preventDefault()
+    $.getJSON('http://localhost:8080/search?id=' + id , function(coordinates) {
+      if(!coordinates.isLifeFound){
+        $('h1').text('Could not find life in this star');
+        $('#currentLocation').text("x: " + coordinates.coordinate[0] + " y: " +  coordinates.coordinate[1] + " z: " +  coordinates.coordinate[2])
+        // $('#currentLocation").text(coordinates.coordinate[0])
+      }else{
+        $('#toptitle').html("<h1>Found life in this star</h1>");
+      }
+      
+      var newPos = new THREE.Vector3( coordinates.coordinate[0] / 2**60, coordinates.coordinate[1] / 2**60, coordinates.coordinate[2] / 2**60); 
+      camera.position.x += coordinates.coordinate[0] / 2**60
+      camera.position.y += coordinates.coordinate[1] / 2**60
+      cameraPosition = newPos
+      ++id;
+    })
+    
+  }
+})
+
+
+});
+  
+});
+  
+  
 </script></body>
