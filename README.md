@@ -10,3 +10,6 @@ Instantiates all planets according to their types.
 ## Press Space To Search Life.
 
 Note!! Please restart API server after 20 iterations.
+
+
+Live Version: https://foul-notify.glitch.me
