@@ -13,3 +13,4 @@ Note!! Please restart API server after 20 iterations.
 
 
 Live Version: https://foul-notify.glitch.me
+It will not work if you do not start API in your local.
