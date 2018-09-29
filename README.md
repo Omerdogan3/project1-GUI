@@ -13,6 +13,10 @@ Clone this repository
 ```
 python -m http.server 8081
 ```
+```
+localhost:8081
+```
+
 ## Note!! Please restart API server after each 30 iterations.
 ## Press Space To Search Life.
 
