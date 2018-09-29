@@ -16,9 +16,13 @@ python -m http.server 8081
 ```
 localhost:8081
 ```
+## Expected Output
+![alt text](https://raw.githubusercontent.com/Omerdogan3/project1-GUI/master/screenshot.png)
+
 
 ## Note!! Please restart API server after each 30 iterations.
 ## Press Space To Search Life.
 
 Live Version: https://foul-notify.glitch.me </br>
 It will not work if you do not start API in your local.
+
