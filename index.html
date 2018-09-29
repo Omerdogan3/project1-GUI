@@ -4,62 +4,58 @@
 <script src="threex.atmospherematerial.js"></script>
 <script src="vendor/three.js/examples/js/libs/dat.gui.min.js"></script>
 <script src="threex.atmospheredatgui.js"></script>
+<link rel="stylesheet" type="text/css" href="mystyle.css">
+
 <script
   src="https://code.jquery.com/jquery-3.3.1.js"
   integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
   crossorigin="anonymous"></script>
 <body style="margin: 0px; background-color: #000000; overflow: hidden;">
-  <div style="position: absolute"> 
-    <h1 id="toptitle'" style="color:white">
+ 
+	<div class="topLeftPanel" style="position: absolute"> 
+    <h1 id="topTitle" style="color:white">
       Design Patterns Project 1
     </h1>
-    <p id="currentLocation" style="color:white">
+    <p id="currentLocation" style="color:white;">
       x: 0
       y: 0
       z: 0
-    </p>
-  </div>
-  
+		</p>
+		
+		<p id="generatedStars" style="color:white;">
+			Dwarf stars are: 0 <br>
+			Medium stars are: 0 <br>
+			Giant stars are: 0 <br>
+		</p>
+	</div>
+	
+	<h1 id="loading-letter">Loading...</h1>
+	
+	<div id="err-message">
+		<h2>Please Make Sure <br/> Your API is Working!</h2>
+	</div>
   
 <script>
+
+
+	
   
 var cameraPosition = new THREE.Vector3(0,0,0);
-// var loader = new THREE.OBJLoader();
-
-//   loader.load(
-// 	// resource URL
-// 	'models/monster.obj',
-// 	// called when resource is loaded
-// 	function ( object ) {
-
-// 		scene.add( object );
-
-// 	},
-// 	// called when loading is in progresses
-// 	function ( xhr ) {
-
-// 		console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-
-// 	},
-// 	// called when loading has errors
-// 	function ( error ) {
-
-// 		console.log( 'An error happened' );
-
-// 	}
-// );
   
 $(document).ready(function() {
+	$.getJSON('http://localhost:8080', function(coordinates) {
+		$('#err-message').hide()
+		$('#generatedStars').html('Dwarf stars are: ' + coordinates.starData.dwarfNumOfStars + '<br>' + 'Medium stars are: ' + coordinates.starData.medNumOfStars + '<br>' + 'Giant stars are: ' + coordinates.starData.giantNumOfStars + '<br>')
+		
+		setTimeout(()=>{
+			$('#loading-letter').hide()
+		},5000)
 
-$.getJSON('http://localhost:8080', function(coordinates) {
-    // console.log(coordinates)
 
-  
-  
-  
 	var renderer	= new THREE.WebGLRenderer({
 		antialias	: true
 	});
+
 	renderer.setSize( window.innerWidth, window.innerHeight );
 	document.body.appendChild( renderer.domElement );
 	renderer.shadowMapEnabled	= true
@@ -84,7 +80,6 @@ $.getJSON('http://localhost:8080', function(coordinates) {
 	light.shadowCameraRight	=  1
 	light.shadowCameraTop	=  1
 	light.shadowCameraBottom= -1
-	// light.shadowCameraVisible	= true
 
 	light.shadowBias	= 0.001
 	light.shadowDarkness	= 0.2
@@ -92,18 +87,8 @@ $.getJSON('http://localhost:8080', function(coordinates) {
 	light.shadowMapWidth	= 1024
 	light.shadowMapHeight	= 1024
 	
-	//////////////////////////////////////////////////////////////////////////////////
-	//		added starfield							//
-	//////////////////////////////////////////////////////////////////////////////////
-	
 	var starSphere	= THREEx.Planets.createStarfield()
 	scene.add(starSphere)
-
-	//////////////////////////////////////////////////////////////////////////////////
-	//		add an object and make it move					//
-	//////////////////////////////////////////////////////////////////////////////////
-
-	// var datGUI	= new dat.GUI()
 
 	var containerEarth	= new THREE.Object3D()
 	containerEarth.rotateZ(-23.4 * Math.PI/180)
@@ -140,53 +125,57 @@ $.getJSON('http://localhost:8080', function(coordinates) {
 
 	containerEarth.add( mesh );
 
+	populatePlanet(30)
+
+  function populatePlanet(numberOfStars){
+		for(let i=0; i<numberOfStars; ++i){
+			var starMesh	= THREEx.Planets.createVenus()
+			
+			currX = coordinates.coordinates[i].coordinate[0] / 2**60,
+			currY = coordinates.coordinates[i].coordinate[1] / 2**60,
+			currZ = coordinates.coordinates[i].coordinate[2] / 2**60  
+			
+			starMesh.position.set(currX, currY, currZ )
+			
+			for(let j=0; j<coordinates.coordinates[i].tmpPlanet.length; ++j){
+				var dist = coordinates.coordinates[i].tmpPlanet[j].distance / 90
+				var degree = Math.random(-360,360)
+				var planetType = coordinates.coordinates[i].tmpPlanet[j].planetType;
+				
+				if(planetType === "r"){
+					var planetMesh	= THREEx.Planets.createMoon()
+				}else if(planetType === "g"){
+					var planetMesh	= THREEx.Planets.createPluto()
+				}else{
+					var planetMesh	= THREEx.Planets.createEarth()
+				}
+				
+				
+				var planetMesh	= THREEx.Planets.createPluto()
+				planetMesh.position.set(currX + Math.sin(dist)* Math.cos(dist) * degree,currY + Math.cos(dist)* Math.sin(dist) * degree,currZ + dist * Math.cos(dist))
+				planetMesh.scale.multiplyScalar(0.2)
+				containerEarth.add(planetMesh)
+			}
+			
+			
+			
+			//set size of the star according to type
+			if(coordinates.coordinates[i].starType === "d"){
+				starMesh.scale.multiplyScalar(1/2)
+			}else if(coordinates.coordinates[i].starType === "g"){
+				starMesh.scale.multiplyScalar(2)
+			}else{
+				starMesh.scale.multiplyScalar(1)
+			}
+			
+			starMesh.scale.multiplyScalar(1)
+			starMesh.receiveShadow	= true
+			starMesh.castShadow	= true
+			containerEarth.add(starMesh)
+		}
+	}
   
-  
-   for(let i=0; i<20; ++i){
-    var starMesh	= THREEx.Planets.createVenus()
-    
-    currX = coordinates.coordinates[i].coordinate[0] / 2**60,
-    currY = coordinates.coordinates[i].coordinate[1] / 2**60,
-    currZ = coordinates.coordinates[i].coordinate[2] / 2**60  
-    
-    starMesh.position.set(currX, currY, currZ )
-     
-     for(let j=0; j<coordinates.coordinates[i].tmpPlanet.length; ++j){
-       var dist = coordinates.coordinates[i].tmpPlanet[j].distance / 90
-       var degree = Math.random(-360,360)
-       var planetType = coordinates.coordinates[i].tmpPlanet[j].planetType;
-       
-       if(planetType === "r"){
-         var planetMesh	= THREEx.Planets.createMoon()
-       }else if(planetType === "g"){
-         var planetMesh	= THREEx.Planets.createPluto()
-       }else{
-         var planetMesh	= THREEx.Planets.createEarth()
-       }
-       
-       
-       var planetMesh	= THREEx.Planets.createPluto()
-       planetMesh.position.set(currX + Math.sin(dist)* Math.cos(dist) * degree,currY + Math.cos(dist)* Math.sin(dist) * degree,currZ + dist * Math.cos(dist))
-       planetMesh.scale.multiplyScalar(0.2)
-       containerEarth.add(planetMesh)
-     }
-     
-     
-     
-     //set size of the star according to type
-    if(coordinates.coordinates[i].starType === "d"){
-      starMesh.scale.multiplyScalar(1/2)
-    }else if(coordinates.coordinates[i].starType === "g"){
-      starMesh.scale.multiplyScalar(2)
-    }else{
-      starMesh.scale.multiplyScalar(1)
-    }
-     
-    starMesh.scale.multiplyScalar(1)
-    starMesh.receiveShadow	= true
-    starMesh.castShadow	= true
-    containerEarth.add(starMesh)
-  }
+   
 
 
 	//////////////////////////////////////////////////////////////////////////////////
@@ -205,7 +194,9 @@ $.getJSON('http://localhost:8080', function(coordinates) {
 
   camera.position.x = 10
   camera.position.y = 10
-  camera.lookAt( scene.position )
+	camera.lookAt( scene.position )
+	
+
 	//////////////////////////////////////////////////////////////////////////////////
 	//		render the scene						//
 	//////////////////////////////////////////////////////////////////////////////////
@@ -216,6 +207,7 @@ $.getJSON('http://localhost:8080', function(coordinates) {
 	//////////////////////////////////////////////////////////////////////////////////
 	//		loop runner							//
 	//////////////////////////////////////////////////////////////////////////////////
+
 	var lastTimeMsec= null
 	requestAnimationFrame(function animate(nowMsec){
 		// keep looping
@@ -240,11 +232,10 @@ $.getJSON('http://localhost:8080', function(coordinates) {
     e.preventDefault()
     $.getJSON('http://localhost:8080/search?id=' + id , function(coordinates) {
       if(!coordinates.isLifeFound){
-        $('h1').text('Could not find life in this star');
+        $('#topTitle').text('Could not find life in this star');
         $('#currentLocation').text("x: " + coordinates.coordinate[0] + " y: " +  coordinates.coordinate[1] + " z: " +  coordinates.coordinate[2])
-        // $('#currentLocation").text(coordinates.coordinate[0])
       }else{
-        $('#toptitle').html("<h1>Found life in this star</h1>");
+        $('#topTitle').text("Found life in this star");
       }
       
       var newPos = new THREE.Vector3( coordinates.coordinate[0] / 2**60, coordinates.coordinate[1] / 2**60, coordinates.coordinate[2] / 2**60); 
@@ -253,12 +244,13 @@ $.getJSON('http://localhost:8080', function(coordinates) {
       cameraPosition = newPos
       ++id;
     })
-    
   }
 })
 
 
-});
+}).fail(()=>{
+	console.log("ERR")
+})
   
 });
   
